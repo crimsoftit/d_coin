@@ -1,0 +1,20 @@
+{
+    "name": "DuaraCoin_Token_Sale",
+    "version": "1.0.0",
+    "description": "DuaraCoin Token Sale ICO",
+    "main": "truffle-config.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "dev": "lite-server"
+    },
+    "author": "Emmanuel Sindani",
+    "license": "ISC",
+    "devDependencies": {
+        "lite-server": "^2.6.1"
+    },
+    "dependencies": {
+        "truffle-contract": "^4.0.31"
+    }
+}

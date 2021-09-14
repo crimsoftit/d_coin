@@ -4,6 +4,7 @@ App = {
     web3Provider: null,
     contracts: {},
     account: '0x0',
+    loading: false,
 
     init: function() {
         console.log("App initialized...")
@@ -44,10 +45,19 @@ App = {
 	},
 
     render: function () {
+        if (App.loading) {
+            return;
+        }
+        App.loading = true;
+        
         // load account data
         web3.eth.getCoinbase(function(err, account) {
-            App.account = account;
-            $('#accountAddress').html("Your account address is " + account);
+            if(err === null) {
+                App.account = account;
+                $('#accountAddress').html("Your account address is " + account);
+            } else {
+                $('#accountAddress').html("ERROR LOADING ACCOUNT ADDRESS!!!");
+            }
         })
     }
 }

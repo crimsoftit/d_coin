@@ -5,6 +5,9 @@ App = {
     contracts: {},
     account: '0x0',
     loading: false,
+    tokenPrice: 1000000000000000,
+    tokensSold: 0,
+    tokenAvailable: 750000,
 
     init: function() {
         console.log("App initialized...")
@@ -49,6 +52,12 @@ App = {
             return;
         }
         App.loading = true;
+
+        var loader = $('#preloader');
+        var content = $('#content');
+
+        loader.show();
+        content.hide();
         
         // load account data
         web3.eth.getCoinbase(function(err, account) {
@@ -58,7 +67,40 @@ App = {
             } else {
                 $('#accountAddress').html("ERROR LOADING ACCOUNT ADDRESS!!!");
             }
-        })
+        });
+
+        // load DuaraTokenSale contract
+        App.contracts.DuaraTokenSale.deployed().then(function (instance) {
+            duaraTokenSaleInstance = instance;
+            return duaraTokenSaleInstance.tokenPrice();
+        }).then(function (tokenPrice) {
+            console.log("token price: ", tokenPrice.toNumber());
+            App.tokenPrice = tokenPrice;
+            $('.token-price').html(web3.fromWei(App.tokenPrice, "ether").toNumber());
+            return duaraTokenSaleInstance.tokensSold();
+        }).then(function (tokensSold) {
+            console.log("total no. of tokens sold: ", tokensSold.toNumber());
+            App.tokensSold = tokensSold.toNumber();
+            $('.tokens-sold').html(App.tokensSold);
+            $('.tokens-available').html(App.tokenAvailable);
+
+            var progress = (App.tokensSold / App.tokenAvailable) * 100;
+            console.log(progress);
+            $('.progress-bar').css('width', progress + '%');
+
+            // load DuaraToken contract
+            App.contracts.DuaraToken.deployed().then(function (instance) {
+                duaraTokenInstance = instance;
+                return duaraTokenInstance.balanceOf(App.account);
+            }).then(function (balance) {
+                $('.dapp-balance').html(balance.toNumber());
+            });
+        });
+
+
+        App.loading = false;
+        loader.hide();
+        content.show();
     }
 }
 

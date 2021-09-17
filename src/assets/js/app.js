@@ -24,7 +24,6 @@ App = {
             App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
             web3 = new Web3(App.web3Provider);
         }
-
         return App.initContracts();
     },
 
@@ -42,10 +41,24 @@ App = {
 				App.contracts.DuaraToken.deployed().then(function(DuaraToken) {
 					console.log("DuaraCoin Token Address: ", DuaraToken.address);
 				});
+                App.listenForEvents();
                 return App.render();
 			});
 		});
 	},
+
+    // listen for events emitted from the contract
+    listenForEvents: function () {
+        App.contracts.DuaraTokenSale.deployed().then(function (instance) {
+            instance.Sell({}, {
+                fromBlock: 0,
+                toBlock: 'latest',
+            }).watch(function (error, event) {
+                console.log('event triggered: ', event);
+                App.render();
+            });
+        });
+    },
 
     render: function () {
         if (App.loading) {
@@ -94,13 +107,32 @@ App = {
                 return duaraTokenInstance.balanceOf(App.account);
             }).then(function (balance) {
                 $('.dapp-balance').html(balance.toNumber());
+                App.loading = false;
+                loader.hide();
+                content.show();
             });
         });
+        
+    },
 
+    buyDHC: function () {
+        $('#loader').show();
+        $('#content').hide();
 
-        App.loading = false;
-        loader.hide();
-        content.show();
+        var numberOfTokens = $('#numberOfTokens').val();
+        App.contracts.DuaraTokenSale.deployed().then(function (instance) {
+            return instance.buyTokens(numberOfTokens, {
+                from: App.account,
+                value: numberOfTokens * App.tokenPrice,
+                gas: 500000
+            }).then(function (result) {
+                console.log('token purchase successful...');
+                $('form').trigger('reset'); // reset no. of tokens in the form
+                // wait for Sell event to emit
+                //$('#content').show();
+                //$('#loader').hide();
+            });
+        });
     }
 }
 
